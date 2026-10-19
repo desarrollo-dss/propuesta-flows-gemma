@@ -182,6 +182,7 @@ code { font: 400 0.82em var(--mono); background: var(--rojo-suave); color: var(-
 .enlace { color: var(--wa-azul); }
 /* Enlace dentro del Flow (EmbeddedLink) */
 .enlace-flow { align-self: flex-start; border: 0; background: none; padding: 6px 0; color: var(--wa-azul); font: 600 15px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; cursor: pointer; }
+.enlace-pie { justify-self: center; padding: 4px 12px 6px; }
 
 .cargando { position: absolute; inset: 0; background: rgba(255, 255, 255, 0.72); display: grid; place-items: center; }
 .giro { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #D5DCE0; border-top-color: var(--wa-verde); animation: girar 0.8s linear infinite; }
@@ -456,7 +457,7 @@ tbody tr:last-child > * { border-bottom: 0; }
     resultado: {
       paso: 'Confirmación', titulo: 'Confirmación',
       ve: 'El resultado dentro del Flow. *Listo* regresa al chat, donde ya está el mensaje del bot y, si aplica, el PDF. *Hacer otra operación* regresa al menú con el saldo al día, sin salir del Flow.',
-      detras: 'El servidor manda la confirmación al chat en cuanto termina la operación, aunque el cliente siga en el Flow o lo cierre sin tocar *Listo*. El enlace pide el menú al servidor del bot (`data_exchange`) para traer el saldo nuevo. Esa ruta de regreso forma un ciclo en el Flow y la documentación de Meta no dice si lo acepta: hay que validarla en el Flow Builder. Si no la acepta, al tocar *Listo* el bot manda otro botón *Menú* al chat.',
+      detras: 'El servidor manda la confirmación al chat en cuanto termina la operación, aunque el cliente siga en el Flow o lo cierre sin tocar *Listo*. El enlace pide el menú al servidor del bot (`data_exchange`) para traer el saldo nuevo. En WhatsApp el enlace aparece en el contenido, debajo del mensaje; aquí se muestra arriba de *Listo*. Esa ruta de regreso forma un ciclo en el Flow y la documentación de Meta no dice si lo acepta: hay que validarla en el Flow Builder. Si no la acepta, al tocar *Listo* el bot manda otro botón *Menú* al chat.',
       hoy: 'La confirmación llega como mensaje de texto; para otra operación hay que escribir *menu* y empezar de nuevo.',
       prueba: 'Toca *Hacer otra operación* para volver al menú con el saldo nuevo, o *Listo* para regresar al chat.'
     },
@@ -700,9 +701,7 @@ tbody tr:last-child > * { border-bottom: 0; }
     RESULTADO: {
       titulo: 'Gasolineras GEMMA', nota: 'resultado', boton: 'Listo',
       listo: () => true,
-      // En el Flow del menú, la confirmación ofrece volver al menú sin cerrar; el registro no lo necesita.
-      cuerpo: p => `<h3 class="th">${esc(p.datos.titulo)}</h3><p class="tb">${esc(p.datos.mensaje)}</p>`
-        + (S.flow.pila[0].id === 'MENU' ? '<button type="button" class="enlace-flow" data-otra>Hacer otra operación</button>' : ''),
+      cuerpo: p => `<h3 class="th">${esc(p.datos.titulo)}</h3><p class="tb">${esc(p.datos.mensaje)}</p>`,
       enviar: p => { completar(p.datos); return null; }
     }
   };
@@ -811,7 +810,10 @@ tbody tr:last-child > * { border-bottom: 0; }
     const def = PANTALLAS[p.id];
     const etiqueta = typeof def.boton === 'function' ? def.boton(p) : def.boton;
     const boton = etiqueta ? `<button type="button" class="boton-flow" id="flowEnviar" ${def.listo(p) ? '' : 'disabled'}>${esc(etiqueta)}</button>` : '';
-    $('#flowPie').innerHTML = boton + '<p class="administrado">Administrado por la empresa. <span>Más información</span></p>';
+    // En la confirmación del menú, «Hacer otra operación» va arriba de «Listo»; el registro no lo lleva.
+    const otra = p.id === 'RESULTADO' && S.flow.pila[0].id === 'MENU'
+      ? '<button type="button" class="enlace-flow enlace-pie" data-otra>Hacer otra operación</button>' : '';
+    $('#flowPie').innerHTML = otra + boton + '<p class="administrado">Administrado por la empresa. <span>Más información</span></p>';
   }
   // Vuelve a pintar la pantalla actual sin perder la posición (al agregar o quitar una foto, al elegir un premio).
   function refrescarCuerpo() {
@@ -996,7 +998,6 @@ tbody tr:last-child > * { border-bottom: 0; }
   $('#flowCuerpo').addEventListener('click', e => {
     const opcion = e.target.closest('[data-opcion]');
     if (opcion) return elegir(opcion.dataset.opcion);
-    if (e.target.closest('[data-otra]')) return otraOperacion();
     const foto = e.target.closest('[data-foto]');
     if (foto) { tope().form[foto.dataset.foto] = `${foto.dataset.foto}.jpg`; return refrescarCuerpo(); }
     const quitar = e.target.closest('[data-quitar]');
@@ -1033,6 +1034,7 @@ tbody tr:last-child > * { border-bottom: 0; }
     document.getElementById('despues')?.scrollIntoView({ block: 'nearest' });
   });
   $('#flowPie').addEventListener('click', async e => {
+    if (e.target.closest('[data-otra]')) return otraOperacion();
     if (e.target.id !== 'flowEnviar') return;
     const p = tope();
     if (p.id === 'RESULTADO') return PANTALLAS.RESULTADO.enviar(p);
