@@ -246,7 +246,6 @@ tbody tr:last-child > * { border-bottom: 0; }
   <header class="portada">
     <span class="etiqueta">Propuesta · Bot GEMMA en WhatsApp</span>
     <h1>El menú y el registro del bot como formularios de WhatsApp</h1>
-    <p>Maqueta navegable: el cliente escribe «hola», recibe el botón Menú y cada opción se resuelve en su propia pantalla, sin escribir números ni claves. Quien escribe por primera vez recibe el botón Registrarme y se registra igual, en formularios.</p>
   </header>
 
   <section class="escenario">
@@ -303,7 +302,7 @@ tbody tr:last-child > * { border-bottom: 0; }
           <tr><th scope="row">Canjear</th><td>Ver la imagen, escribir la clave, leer las estaciones en texto y escribir el número.</td><td>Tocar el premio y la estación. Solo aparecen los premios que puede canjear (activos, con inventario y que su saldo cubre) y las estaciones que los tienen.</td></tr>
           <tr><th scope="row">Equivocarse</th><td>Mensaje de error y repetir el paso.</td><td>Aviso en la misma pantalla; se corrige el campo y se envía de nuevo.</td></tr>
           <tr><th scope="row">Confirmación</th><td>Mensaje de texto o PDF en el chat.</td><td>Pantalla de confirmación y el mismo mensaje o PDF en el chat.</td></tr>
-          <tr><th scope="row">Hacer otra operación</th><td>Escribir <em>menu</em> y volver a elegir la opción.</td><td>Desde la confirmación, «Hacer otra operación» regresa al menú con el saldo al día, sin salir del formulario.</td></tr>
+          <tr><th scope="row">Hacer otra operación</th><td>Escribir <em>menu</em> y volver a elegir la opción.</td><td>Desde la confirmación, «Regresar a Menú» regresa al menú con el saldo al día, sin salir del formulario.</td></tr>
         </tbody>
       </table>
     </div>
@@ -333,7 +332,7 @@ tbody tr:last-child > * { border-bottom: 0; }
       <li>
         <span class="chip aviso">Por validar en Meta</span>
         <h3>Volver al menú sin salir</h3>
-        <p>El enlace «Hacer otra operación» necesita la ruta de la confirmación al menú, que forma un ciclo. La documentación de Meta no dice si lo acepta: se valida en el Flow Builder. Si no, al tocar Listo el bot manda otro botón Menú.</p>
+        <p>El enlace «Regresar a Menú» necesita la ruta de la confirmación al menú, que forma un ciclo. La documentación de Meta no dice si lo acepta: se valida en el Flow Builder. Si no, al tocar Listo el bot manda otro botón Menú.</p>
       </li>
       <li>
         <span class="chip nuevo">Operación</span>
@@ -456,10 +455,10 @@ tbody tr:last-child > * { border-bottom: 0; }
     },
     resultado: {
       paso: 'Confirmación', titulo: 'Confirmación',
-      ve: 'El resultado dentro del Flow. *Listo* regresa al chat, donde ya está el mensaje del bot y, si aplica, el PDF. *Hacer otra operación* regresa al menú con el saldo al día, sin salir del Flow.',
+      ve: 'El resultado dentro del Flow. *Listo* regresa al chat, donde ya está el mensaje del bot y, si aplica, el PDF. *Regresar a Menú* regresa al menú con el saldo al día, sin salir del Flow.',
       detras: 'El servidor manda la confirmación al chat en cuanto termina la operación, aunque el cliente siga en el Flow o lo cierre sin tocar *Listo*. El enlace pide el menú al servidor del bot (`data_exchange`) para traer el saldo nuevo. En WhatsApp el enlace es texto azul y aparece en el contenido, debajo del mensaje; aquí se muestra como botón con borde arriba de *Listo*. Esa ruta de regreso forma un ciclo en el Flow y la documentación de Meta no dice si lo acepta: hay que validarla en el Flow Builder. Si no la acepta, al tocar *Listo* el bot manda otro botón *Menú* al chat.',
       hoy: 'La confirmación llega como mensaje de texto; para otra operación hay que escribir *menu* y empezar de nuevo.',
-      prueba: 'Toca *Hacer otra operación* para volver al menú con el saldo nuevo, o *Listo* para regresar al chat.'
+      prueba: 'Toca *Regresar a Menú* para volver al menú con el saldo nuevo, o *Listo* para regresar al chat.'
     },
     inicio: {
       paso: 'Chat', titulo: 'Un número nuevo escribe por primera vez',
@@ -810,9 +809,9 @@ tbody tr:last-child > * { border-bottom: 0; }
     const def = PANTALLAS[p.id];
     const etiqueta = typeof def.boton === 'function' ? def.boton(p) : def.boton;
     const boton = etiqueta ? `<button type="button" class="boton-flow" id="flowEnviar" ${def.listo(p) ? '' : 'disabled'}>${esc(etiqueta)}</button>` : '';
-    // En la confirmación del menú, «Hacer otra operación» va arriba de «Listo»; el registro no lo lleva.
+    // En la confirmación del menú, «Regresar a Menú» va arriba de «Listo»; el registro no lo lleva.
     const otra = p.id === 'RESULTADO' && S.flow.pila[0].id === 'MENU'
-      ? '<button type="button" class="enlace-flow enlace-pie" data-otra>Hacer otra operación</button>' : '';
+      ? '<button type="button" class="enlace-flow enlace-pie" data-otra>Regresar a Menú</button>' : '';
     $('#flowPie').innerHTML = otra + boton + '<p class="administrado">Administrado por la empresa. <span>Más información</span></p>';
   }
   // Vuelve a pintar la pantalla actual sin perder la posición (al agregar o quitar una foto, al elegir un premio).
@@ -881,7 +880,7 @@ tbody tr:last-child > * { border-bottom: 0; }
     datos.entregado = true;
     for (const m of datos.chat) { await espera(550); agregar({ de: 'in', ...m }); }
   }
-  // «Hacer otra operación»: el resultado ya va al chat y el servidor responde con el menú, con el saldo al día.
+  // «Regresar a Menú»: el resultado ya va al chat y el servidor responde con el menú, con el saldo al día.
   async function otraOperacion() {
     const datos = tope().datos;
     await cargando();
