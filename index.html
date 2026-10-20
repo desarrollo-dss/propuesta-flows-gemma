@@ -654,7 +654,7 @@ tbody tr:last-child > * { border-bottom: 0; }
         + campoTexto(p, 'nombre', 'Nombre(s)', 'autocapitalize="words"')
         + campoTexto(p, 'apellidos', 'Apellidos', 'autocapitalize="words"')
         + campoTexto(p, 'correo', 'Correo electrónico', 'type="email" inputmode="email"', 'Para contactarte en caso de ser necesario.')
-        + radios(p, 'genero', 'Género', ['Masculino', 'Femenino', 'No especificar'].map(x => ({ id: x, t: x })))
+        + radios(p, 'genero', 'Género', ['Masculino', 'Femenino'].map(x => ({ id: x, t: x })))
         + campoTexto(p, 'nacimiento', 'Fecha de nacimiento', `type="date" max="${MAX_NACIMIENTO}"`, 'Para recibir beneficios. Debes tener 16 años o más.')
         + (esUltimo('DATOS') ? terminos(p) : ''),
       enviar: p => {
